@@ -1,2 +1,6 @@
 .venv
 DATASET/
+artifacts/
+__pycache__/
+*.pyc
+logs/
