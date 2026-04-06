@@ -4,7 +4,7 @@ with open('requirements.txt') as f:
     requirements = f.read().splitlines()
 
 setup(
-    name='Hotel-Reservation-Prediction',
+    name='Anime-recommender-system',
     version='0.1',
     author='Oumar',
     packages=find_packages(),

@@ -4,3 +4,6 @@ artifacts/
 __pycache__/
 *.pyc
 logs/
+Anime_recommender_system.egg-*
+notebook/weights.*
+notebook/training_*
