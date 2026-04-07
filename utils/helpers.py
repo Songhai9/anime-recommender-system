@@ -1,12 +1,14 @@
 import pandas as pd
 import numpy as np
 import joblib
+import matplotlib.pyplot as plt
 from collections import defaultdict
 from wordcloud import WordCloud
 from config.paths_config import *
 
 ######### GET ANIME NAME #########
-def getAnimeName(anime_id):
+def getAnimeName(anime_id, path_df):
+    df = pd.read_csv(path_df)
     try:
         name = df[df['anime_id'] == anime_id]['eng_version'].values[0]
         if name is np.nan:
@@ -30,8 +32,17 @@ def getFavGenre(frame, plot=False):
     
     if plot:
         showWordCloud(all_genres)
-    
+
     return genres_list
+
+
+######### SHOW WORD CLOUD #########
+def showWordCloud(data):
+    wc = WordCloud(width=800, height=400, background_color='white').generate_from_frequencies(data)
+    plt.figure(figsize=(10, 5))
+    plt.imshow(wc, interpolation='bilinear')
+    plt.axis('off')
+    plt.show()
 
 ######### GET ANIME FRAME #########
 def getAnimeFrame(anime, path_df):
@@ -49,15 +60,13 @@ def getSynopsis(anime, path_df):
 
 
 ######### CONTENT RECOMMENDATION #########
-def find_similar_animes(name, path_anime_weights, path_anime2anime_encoded, path_anime2anime_decoded, path_df, n=10, return_dist=False, neg=False):
+def find_similar_animes(name, path_anime_weights, path_anime2anime_encoded, path_anime2anime_decoded, path_anime_df, n=10, return_dist=False, neg=False):
     # Get the anime_id for the given name
     anime_weights = joblib.load(path_anime_weights)
     anime2anime_encoded = joblib.load(path_anime2anime_encoded)
     anime2anime_decoded = joblib.load(path_anime2anime_decoded)
 
-    df = pd.read_csv(path_df)
-
-    index = getAnimeFrame(name, df).anime_id.values[0]
+    index = getAnimeFrame(name, path_anime_df).anime_id.values[0]
     encoded_index = anime2anime_encoded.get(index)
 
     if encoded_index is None:
@@ -88,7 +97,7 @@ def find_similar_animes(name, path_anime_weights, path_anime2anime_encoded, path
        
 
        
-        anime_frame = getAnimeFrame(decoded_id, df)
+        anime_frame = getAnimeFrame(decoded_id, path_anime_df)
         anime_name = anime_frame.eng_version.values[0]
         genre = anime_frame.Genres.values[0]
         similarity = dists[close]
@@ -151,12 +160,13 @@ def find_similar_users(item_input , path_user_weights , path_user2user_encoded ,
 
 ######### USER PREFERENCES #########
 
-def get_user_preferences(user_id, path_rating_df, path_df, plot=False):
+def get_user_preferences(user_id, path_rating_df, path_anime_df, plot=False):
 
     rating_df = pd.read_csv(path_rating_df)
-    df = pd.read_csv(path_df)
 
     animes_watched_by_user = rating_df[rating_df['user_id'] == user_id]
+    if animes_watched_by_user.empty:
+        return pd.DataFrame(columns=['eng_version', 'Genres'])
     user_rating_percentile = np.percentile(animes_watched_by_user['rating'], 75)
 
     animes_watched_by_user = animes_watched_by_user[animes_watched_by_user['rating'] >= user_rating_percentile]
@@ -165,7 +175,8 @@ def get_user_preferences(user_id, path_rating_df, path_df, plot=False):
         animes_watched_by_user.sort_values(by='rating', ascending=False)['anime_id'].values
     )
 
-    anime_df_rows = df[df['anime_id'].isin(top_animes_user)]
+    anime_df = pd.read_csv(path_anime_df)
+    anime_df_rows = anime_df[anime_df['anime_id'].isin(top_animes_user)]
     anime_df_rows = anime_df_rows[['eng_version', 'Genres']]
 
     if plot:
@@ -176,17 +187,14 @@ def get_user_preferences(user_id, path_rating_df, path_df, plot=False):
 
 ######### USER RECOMMENDATIONS ##########
 
-def get_user_recommendations(similar_users, users_preferences, path_df, path_rating_df, path_synopsis_df, n=10):
+def get_user_recommendations(similar_users, users_preferences, path_anime_df, path_rating_df, path_synopsis_df, n=10):
     
-    df = pd.read_csv(path_df)
-    rating_df = pd.read_csv(path_rating_df)
-    synopsis_df = pd.read_csv(path_synopsis_df)
 
     recommended_animes = []
     anime_list = []
 
     for user_id in similar_users['similar_users'].values:
-        pref_list = get_user_preferences(int(user_id), rating_df, df)
+        pref_list = get_user_preferences(int(user_id), path_rating_df, path_anime_df)
 
         pref_list = pref_list[~pref_list['eng_version'].isin(users_preferences['eng_version'].values)]
 
@@ -199,10 +207,10 @@ def get_user_recommendations(similar_users, users_preferences, path_df, path_rat
         for i, anime_name in enumerate(sorted_list.index):
             n_user_pref = sorted_list[sorted_list.index == anime_name].values[0][0]
             if isinstance(anime_name, str):
-                frame = getAnimeFrame(anime_name, df)
+                frame = getAnimeFrame(anime_name, path_anime_df)
                 anime_id = frame['anime_id'].values[0]
                 genre = frame['Genres'].values[0]
-                synopsis = getSynopsis(int(anime_id), synopsis_df)
+                synopsis = getSynopsis(int(anime_id), path_synopsis_df)
 
                 recommended_animes.append({
                     'n': n_user_pref,

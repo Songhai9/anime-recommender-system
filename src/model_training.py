@@ -41,7 +41,7 @@ class ModelTraining:
         try:
             X_train_array, X_test_array, y_train, y_test = self.load_data()
 
-            n_users = len(joblib.load(USER2USER_ENCONDED))
+            n_users = len(joblib.load(USER2USER_ENCODED))
             n_anime = len(joblib.load(ANIME2ANIME_ENCODED))
 
             base_model = BaseModel(config_path=CONFIG_PATH)
