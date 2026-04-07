@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AniRec — Anime Recommender</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- ─── NAVBAR ─────────────────────────────────────────── -->
+  <header class="navbar">
+    <div class="navbar__inner">
+      <a href="/" class="navbar__brand">
+        <span class="navbar__logo">⬡</span>
+        AniRec
+      </a>
+      <span class="navbar__tagline">Powered by Hybrid ML</span>
+    </div>
+  </header>
+
+  <!-- ─── HERO ──────────────────────────────────────────── -->
+  <section class="hero">
+    <div class="hero__particles" aria-hidden="true">
+      <span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span>
+    </div>
+    <div class="hero__content">
+      <p class="hero__label">AI-Powered Discovery</p>
+      <h1 class="hero__title">Find Your Next<br /><em>Anime Obsession</em></h1>
+      <p class="hero__sub">
+        Enter your User ID and our hybrid recommendation engine will surface
+        10 hand-picked anime titles — blending collaborative filtering with
+        content-based similarity.
+      </p>
+
+      <!-- ─── FORM ─────────────────────────────────────── -->
+      <form class="search-form" method="POST" action="/">
+        <div class="search-form__group">
+          <label class="search-form__label" for="userID">Your User ID</label>
+          <div class="search-form__row">
+            <input
+              class="search-form__input"
+              type="number"
+              id="userID"
+              name="userID"
+              placeholder="e.g. 42"
+              min="1"
+              value="{{ user_id if user_id else '' }}"
+              required
+            />
+            <button class="search-form__btn" type="submit">
+              <span class="search-form__btn-text">Get Recommendations</span>
+              <span class="search-form__btn-icon" aria-hidden="true">&#x2192;</span>
+            </button>
+          </div>
+        </div>
+      </form>
+
+      {% if error %}
+      <div class="alert alert--error" role="alert">
+        <span class="alert__icon">&#x2715;</span>
+        {{ error }}
+      </div>
+      {% endif %}
+    </div>
+  </section>
+
+  <!-- ─── RESULTS ───────────────────────────────────────── -->
+  {% if recommendations %}
+  <main class="results" id="results">
+    <div class="results__header">
+      <h2 class="results__title">
+        Top <span class="accent">{{ recommendations|length }}</span> Picks for User
+        <span class="accent">#{{ user_id }}</span>
+      </h2>
+      <p class="results__subtitle">Ranked by combined collaborative + content score</p>
+    </div>
+
+    <div class="cards-grid">
+      {% for anime in recommendations %}
+      <article class="card" style="--delay: {{ loop.index0 * 60 }}ms">
+        <div class="card__rank">#{{ anime.rank }}</div>
+
+        <div class="card__body">
+          <h3 class="card__title">{{ anime.name }}</h3>
+
+          {% if anime.genres %}
+          <div class="card__genres">
+            {% for genre in anime.genres %}
+            <span class="badge">{{ genre }}</span>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          <p class="card__synopsis">
+            {% if anime.synopsis and anime.synopsis != 'No synopsis available.' %}
+              {{ anime.synopsis[:280] }}{% if anime.synopsis|length > 280 %}&#8230;{% endif %}
+            {% else %}
+              <em class="card__no-synopsis">No synopsis available.</em>
+            {% endif %}
+          </p>
+        </div>
+
+        <div class="card__footer">
+          <span class="card__source">Hybrid Score</span>
+          <span class="card__dot" aria-hidden="true"></span>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </main>
+  {% endif %}
+
+  <!-- ─── EMPTY STATE (first load) ──────────────────────── -->
+  {% if not recommendations and not error %}
+  <div class="empty-state">
+    <div class="empty-state__icon" aria-hidden="true">&#x2B21;</div>
+    <p class="empty-state__text">Enter a User ID above to get your personalised anime recommendations.</p>
+  </div>
+  {% endif %}
+
+  <!-- ─── FOOTER ────────────────────────────────────────── -->
+  <footer class="footer">
+    <p>AniRec &mdash; Anime Recommender System &bull; Built with Flask &amp; Neural Collaborative Filtering</p>
+  </footer>
+
+</body>
+</html>

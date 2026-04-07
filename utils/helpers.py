@@ -60,7 +60,7 @@ def getSynopsis(anime, path_df):
 
 
 ######### CONTENT RECOMMENDATION #########
-def find_similar_animes(name, path_anime_weights, path_anime2anime_encoded, path_anime2anime_decoded, path_anime_df, n=10, return_dist=False, neg=False):
+def find_similar_animes(name, path_anime_weights, path_anime2anime_encoded, path_anime2anime_decoded, path_anime_df, path_synopsis_df=None, n=10, return_dist=False, neg=False):
     # Get the anime_id for the given name
     anime_weights = joblib.load(path_anime_weights)
     anime2anime_encoded = joblib.load(path_anime2anime_encoded)
