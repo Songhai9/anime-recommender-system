@@ -89,8 +89,8 @@ class DataProcessor:
                 y[train_indices:]
             )
 
-            X_train_array = [X_train[:, 0], X_train[:, 1]]
-            X_test_array = [X_test[:, 0], X_test[:, 1]]
+            self.X_train_array = [X_train[:, 0], X_train[:, 1]]
+            self.X_test_array = [X_test[:, 0], X_test[:, 1]]
             self.y_train_array = y_train
             self.y_test_array = y_test
 
@@ -118,8 +118,8 @@ class DataProcessor:
             
             joblib.dump(self.X_train_array, X_TRAIN_ARRAY)
             joblib.dump(self.X_test_array, X_TEST_ARRAY)
-            joblib.dump(self.y_train_array, Y_TRAIN_ARRAY)
-            joblib.dump(self.y_test_array, X_TEST_ARRAY)
+            joblib.dump(self.y_train_array, Y_TRAIN)
+            joblib.dump(self.y_test_array, Y_TEST)
 
             self.rating_df.to_csv(RATING_DF, index=False)
 
@@ -170,6 +170,7 @@ class DataProcessor:
         try:
             self.load_data(usecols=['user_id', 'anime_id', 'rating'])
             self.filter_user()
+            self.scale_ratings()
             self.encode_data()
             self.split_data()
             self.save_artifacts()
