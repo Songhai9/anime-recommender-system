@@ -1,10 +1,14 @@
 .env
 .venv
 DATASET/
-artifacts/
 __pycache__/
 *.pyc
 logs/
 Anime_recommender_system.egg-*
 notebook/weights.*
 notebook/training_*
+artifacts/raw/
+artifacts/processed/
+artifacts/model/
+artifacts/weights/
+artifacts/model_checkpoint/
